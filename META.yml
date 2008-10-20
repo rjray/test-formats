@@ -1,0 +1,17 @@
+--- #YAML:1.0
+name:                Test-Formats
+version:             0.10
+abstract:            Test::Builder-based testing of XML, etc. content
+license:             ~
+author:              
+    - Randy J. Ray <rjray@blackperl.com>
+generated_by:        ExtUtils::MakeMaker version 6.44
+distribution_type:   module
+requires:     
+    Exporter:                      5.57
+    File::Spec:                    0.8
+    Test::Simple:                  0.80
+    XML::LibXML:                   1.60
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

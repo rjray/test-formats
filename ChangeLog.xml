@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    :tabSize=2:indentSize=2:wrap=hard:
+    The schema for this namespace may be found at the following URL:
+
+    http://www.blackperl.com/XML/ChangeLog/ChangeLogML.xsd
+
+    $Id: ChangeLog.xml 2 2008-10-20 09:56:47Z rjray $
+-->
+<changelog xmlns="http://www.blackperl.com/XML/ChangeLog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xhtml="http://www.w3.org/1999/xhtml"
+    xsi:schemaLocation="http://www.blackperl.com/XML/ChangeLog etc/ChangeLogML.x
+sd">
+  <description>
+    Revision history for the Perl extension module Test::Formats. This is
+    a test-harness implementation that provides users with easy methods for
+    testing text data that adheres to regular, validatable formats.
+  </description>
+  <release version="0.10" tag="v0_10" date="2008-10-20T02:00:00">
+    <change>
+      <fileset revision="">
+        <file action="ADD" path="Build.PL" />
+        <file action="ADD" path="ChangeLog" />
+        <file action="ADD" path="ChangeLog.xml" />
+        <file action="ADD" path="MANIFEST" />
+        <file action="ADD" path="MANIFEST.SKIP" />
+        <file action="ADD" path="Makefile.PL" />
+        <file action="ADD" path="README" />
+        <file action="ADD" path="etc/ChangeLogML.xsd" />
+        <file action="ADD" path="lib/Test/Formats.pm" />
+        <file action="ADD" path="lib/Test/Formats/XML.pm" />
+        <file action="ADD" path="t/00_load.t" />
+        <file action="ADD" path="t/01_pod.t" />
+        <file action="ADD" path="t/02_pod_coverage.t" />
+        <file action="ADD" path="t/10_xml/10_sgmldtd.t" />
+        <file action="ADD" path="t/10_xml/20_xmlschema.t" />
+        <file action="ADD" path="t/10_xml/30_relaxng.t" />
+        <file action="ADD" path="t/90_integration/10_with_xml.t" />
+        <file action="ADD" path="t/90_integration/90_empty_subclass.t" />
+        <file action="ADD" path="t/90_integration/MyTestFormats.pm" />
+      </fileset>
+      <description>
+        Initial release. All basic functionality for the Test::Formats::XML
+        specialization is in place, but test coverage is embarrassing.
+      </description>
+    </change>
+  </release>
+</changelog>

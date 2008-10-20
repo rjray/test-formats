@@ -1,0 +1,56 @@
+Test::Formats - Perform unit tests that examine structured/formatted text
+
+Version: 0.10
+
+WHAT IS IT
+
+The Test::Formats package provides Test::More-style test routines for
+examining text that adheres to specific structure or formats. XML content,
+for example, is not just tested to see that a document is well-formed, it is
+tested against a DTD, XML Schema or RelaxNG schema to determine if the
+content is actually valid.
+
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+Alternatively, to install with Module::Build, you can use the following:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Test::Formats
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Formats
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Test-Formats
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Test-Formats
+
+    Search CPAN
+        http://search.cpan.org/dist/Test-Formats
+
+
+CHANGES
+
+Initial release. All basic functionality for the Test::Formats::XML
+specialization is in place, but test coverage is embarrassing.

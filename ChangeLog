@@ -1,0 +1,26 @@
+Revision history for Test-Formats
+# $Id: ChangeLog 2 2008-10-20 09:56:47Z rjray $
+
+0.10    Mon Oct 20 02:06:39 PDT 2008
+
+        Build.PL:
+        ChangeLog:
+        ChangeLog.xml:
+        MANIFEST:
+        MANIFEST.SKIP:
+        Makefile.PL:
+        README:
+        etc/ChangeLogML.xsd:
+        lib/Test/Formats.pm:
+        lib/Test/Formats/XML.pm:
+        t/00_load.t:
+        t/01_pod.t:
+        t/02_pod_coverage.t:
+        t/10_xml/10_sgmldtd.t:
+        t/10_xml/20_xmlschema.t:
+        t/10_xml/30_relaxng.t:
+        t/90_integration/10_with_xml.t:
+        t/90_integration/90_empty_subclass.t:
+        t/90_integration/MyTestFormats.pm:
+        Initial release. All basic functionality for the Test::Formats::XML
+        specialization is in place, but test coverage is embarrassing.
