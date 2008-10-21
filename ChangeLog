@@ -1,5 +1,20 @@
 Revision history for Test-Formats
-# $Id: ChangeLog 2 2008-10-20 09:56:47Z rjray $
+# $Id: ChangeLog 6 2008-10-21 11:12:27Z rjray $
+
+0.11    Tue Oct 21 04:07:00 PDT 2008
+
+        MANIFEST:
+        lib/Test/Formats/XML.pm:
+        t/10_xml/05_xml_parsing.t:
+        Added testing routines to Test::Formats::XML to simple test that XML
+        content is well-formed. Tests only the parsing, no validation. Added
+        test suite for this, and added the suite file to MANIFEST.
+
+        Build.PL:
+        Makefile.PL:
+        Besides bumping the version number, added some clean-up to the
+        overall meta-information so that pre-reqs, etc., are better
+        spelled-out.
 
 0.10    Mon Oct 20 02:06:39 PDT 2008
 

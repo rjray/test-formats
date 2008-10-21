@@ -5,7 +5,7 @@
 
     http://www.blackperl.com/XML/ChangeLog/ChangeLogML.xsd
 
-    $Id: ChangeLog.xml 2 2008-10-20 09:56:47Z rjray $
+    $Id: ChangeLog.xml 6 2008-10-21 11:12:27Z rjray $
 -->
 <changelog xmlns="http://www.blackperl.com/XML/ChangeLog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,9 +17,34 @@ sd">
     a test-harness implementation that provides users with easy methods for
     testing text data that adheres to regular, validatable formats.
   </description>
-  <release version="0.10" tag="v0_10" date="2008-10-20T02:00:00">
+  <release version="0.11" tag="v0_11" date="2008-10-21T04:07:00-07:00">
     <change>
-      <fileset revision="">
+      <fileset revision="4">
+        <file path="MANIFEST" />
+        <file path="lib/Test/Formats/XML.pm" />
+        <file action="ADD" path="t/10_xml/05_xml_parsing.t" />
+      </fileset>
+      <description>
+        Added testing routines to Test::Formats::XML to simple test that XML
+        content is well-formed. Tests only the parsing, no validation. Added
+        test suite for this, and added the suite file to MANIFEST.
+      </description>
+    </change>
+    <change>
+      <fileset revision="5">
+        <file path="Build.PL" />
+        <file path="Makefile.PL" />
+      </fileset>
+      <description>
+        Besides bumping the version number, added some clean-up to the
+        overall meta-information so that pre-reqs, etc., are better
+        spelled-out.
+      </description>
+    </change>
+  </release>
+  <release version="0.10" tag="v0_10" date="2008-10-20T02:00:00-07:00">
+    <change>
+      <fileset revision="2">
         <file action="ADD" path="Build.PL" />
         <file action="ADD" path="ChangeLog" />
         <file action="ADD" path="ChangeLog.xml" />

@@ -6,7 +6,7 @@
 #
 ###############################################################################
 #
-#   $Id: XML.pm 2 2008-10-20 09:56:47Z rjray $
+#   $Id: XML.pm 4 2008-10-21 10:59:44Z rjray $
 #
 #   Description:
 #
@@ -17,6 +17,8 @@
 #                  is_valid_against_xsd
 #                  is_valid_against_sgmldtd
 #                  is_valid_against_dtd
+#                  is_well_formed_xml
+#                  xml_parses_ok
 #
 #   Libraries:     Test::Builder::Module
 #                  XML::LibXML
@@ -31,18 +33,20 @@ use 5.008;
 use strict;
 use warnings;
 use subs qw(is_valid_against
-            is_valid_against_relaxng   is_valid_against_rng
-            is_valid_against_xmlschema is_valid_against_xsd
-            is_valid_against_sgmldtd   is_valid_against_dtd);
+            is_valid_against_relaxng    is_valid_against_rng
+            is_valid_against_xmlschema  is_valid_against_xsd
+            is_valid_against_sgmldtd    is_valid_against_dtd
+            is_well_formed_xml          xml_parses_ok);
 use base 'Test::Builder::Module';
 
 use XML::LibXML;
 
-our @EXPORT      = qw(is_valid_against_relaxng   is_valid_against_rng
-                      is_valid_against_xmlschema is_valid_against_xsd
-                      is_valid_against_sgmldtd   is_valid_against_dtd);
+our @EXPORT      = qw(is_valid_against_relaxng      is_valid_against_rng
+                      is_valid_against_xmlschema    is_valid_against_xsd
+                      is_valid_against_sgmldtd      is_valid_against_dtd
+                      is_well_formed_xml            xml_parses_ok);
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 ###############################################################################
 #
@@ -382,6 +386,59 @@ sub is_valid_against_sgmldtd
 # Semantic-sugar alias for the above:
 *is_valid_against_dtd = \&is_valid_against_sgmldtd;
 
+###############################################################################
+#
+#   Sub Name:       is_well_formed_xml
+#
+#   Description:    Test whether the content passed in parses as XML without
+#                   errors. Makes no effort to validate, only parse.
+#
+#   Arguments:      NAME        IN/OUT  TYPE    DESCRIPTION
+#
+#   Globals:        None.
+#
+#   Environment:    None.
+#
+#   Returns:        Success:    1
+#                   Failure:    0
+#
+###############################################################################
+sub is_well_formed_xml
+{
+    my ($text, $name) = @_;
+    my $TESTBUILDER = __PACKAGE__->builder;
+    my $is_valid = 0;
+    my $dom;
+
+    # Try to parse $text, by hook or by crook:
+    my $parser = XML::LibXML->new();
+    if ($TESTBUILDER->is_fh($text))
+    {
+        # Anything that looks like a file-handle gets treated as such
+        eval { $dom = $parser->parse_fh($text); };
+    }
+    elsif (ref($text) eq 'SCALAR')
+    {
+        # A scalar-ref is presumed to be the XML text passed by reference
+        eval { $dom = $parser->parse_string($$text); };
+    }
+    elsif ($text =~ /<\?xml|<!DOCTYPE/)
+    {
+        # If the text looks like XML (has either a declarative PI or a DOCTYPE
+        # declaration), assume that it is directly-passed-in XML content
+        eval { $dom = $parser->parse_string($text); };
+    }
+    else
+    {
+        # Failing any of the previous tests, assume that it is a filename
+        eval { $dom = $parser->parse_file($text); };
+    }
+
+    $TESTBUILDER->ok(($@) ? 0 : 1, $name) || $TESTBUILDER->diag($@);
+}
+# Semantic-sugar alias for the above:
+*xml_parses_ok = \&is_well_formed_xml;
+
 1;
 
 __END__
@@ -392,7 +449,7 @@ Test::Formats::XML - Test::Formats specialization that tests XML content
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =head1 SYNOPSIS
 
@@ -406,7 +463,9 @@ Version 0.10
     our @relaxng_tests = <relaxng/*.xml>;
     our @sgmldtd_tests = <dtd/*.xml>;
 
-    plan tests => (@schema + @relaxng + @sgmldtd);
+    plan tests => (1 + @schema + @relaxng + @sgmldtd);
+
+    is_well_formed_xml($schema, "Test that the XML Schema parses");
 
     is_valid_against_xmlschema($schema, $_) for (@schema_tests);
 
@@ -578,10 +637,28 @@ for convenience.
 
 =item is_valid_against_xsd($schema, $document, $name)
 
-The last pair validate documents against XML Schemas. See
+This pair validate documents against XML Schemas. See
 L<http://www.w3.org/TR/xmlschema-0/> and L<http://www.w3.org/TR/xmlschema-1/>
 for more about using XML Schema to define document structure. The second name
 is provided as a shorter alias.
+
+=item is_well_formed_xml($document, $name)
+
+=item xml_parses_ok($document, $name)
+
+This pair test that an XML document is C<well-formed>, which is to say that it
+parses without errors. This is not the same as validation. A passing test here
+says nothing about the validity of the XML content itself, only that all tags
+are properly closed, etc. Note that these functions do not take a schema
+argument, only the XML document and (optionally) the test name.
+
+These tests are convenience, as the same basic functionality can be found in
+other test-related modules on CPAN. However, as long as XML::LibXML is already
+being used, there is no harm in making things easier for the user by providing
+them here and cutting down on the list of dependencies.
+
+The second name is provided as a shorter alias, and for aesthetic purposes for
+those who prefer tests that follow the C<*ok()> naming pattern.
 
 =back
 

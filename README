@@ -1,6 +1,6 @@
 Test::Formats - Perform unit tests that examine structured/formatted text
 
-Version: 0.10
+Version: 0.11
 
 WHAT IS IT
 
@@ -52,5 +52,15 @@ You can also look for information at:
 
 CHANGES
 
-Initial release. All basic functionality for the Test::Formats::XML
-specialization is in place, but test coverage is embarrassing.
+MANIFEST:
+lib/Test/Formats/XML.pm:
+t/10_xml/05_xml_parsing.t:
+Added testing routines to Test::Formats::XML to simple test that XML
+content is well-formed. Tests only the parsing, no validation. Added
+test suite for this, and added the suite file to MANIFEST.
+
+Build.PL:
+Makefile.PL:
+Besides bumping the version number, added some clean-up to the
+overall meta-information so that pre-reqs, etc., are better
+spelled-out.

@@ -11,6 +11,7 @@ lib/Test/Formats/XML.pm
 t/00_load.t
 t/01_pod.t
 t/02_pod_coverage.t
+t/10_xml/05_xml_parsing.t
 t/10_xml/10_sgmldtd.t
 t/10_xml/20_xmlschema.t
 t/10_xml/30_relaxng.t
