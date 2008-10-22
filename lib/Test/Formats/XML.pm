@@ -6,24 +6,27 @@
 #
 ###############################################################################
 #
-#   $Id: XML.pm 4 2008-10-21 10:59:44Z rjray $
+#   $Id: XML.pm 9 2008-10-22 09:28:28Z rjray $
 #
 #   Description:
 #
-#   Functions:     is_valid_against
-#                  is_valid_against_relaxng
-#                  is_valid_against_rng
-#                  is_valid_against_xmlschema
-#                  is_valid_against_xsd
-#                  is_valid_against_sgmldtd
-#                  is_valid_against_dtd
-#                  is_well_formed_xml
-#                  xml_parses_ok
+#   Functions:      is_valid_against
+#                   is_valid_against_relaxng
+#                   is_valid_against_rng
+#                   relaxng_ok
+#                   is_valid_against_xmlschema
+#                   is_valid_against_xsd
+#                   xmlschema_ok
+#                   is_valid_against_sgmldtd
+#                   is_valid_against_dtd
+#                   sgmldtd_ok
+#                   is_well_formed_xml
+#                   xml_parses_ok
 #
-#   Libraries:     Test::Builder::Module
-#                  XML::LibXML
+#   Libraries:      Test::Builder::Module
+#                   XML::LibXML
 #
-#   Global Consts: $VERSION
+#   Global Consts:  $VERSION
 #
 ###############################################################################
 
@@ -33,20 +36,20 @@ use 5.008;
 use strict;
 use warnings;
 use subs qw(is_valid_against
-            is_valid_against_relaxng    is_valid_against_rng
-            is_valid_against_xmlschema  is_valid_against_xsd
-            is_valid_against_sgmldtd    is_valid_against_dtd
+            is_valid_against_relaxng    is_valid_against_rng    relaxng_ok
+            is_valid_against_xmlschema  is_valid_against_xsd    xmlschema_ok
+            is_valid_against_sgmldtd    is_valid_against_dtd    sgmldtd_ok
             is_well_formed_xml          xml_parses_ok);
 use base 'Test::Builder::Module';
 
 use XML::LibXML;
 
-our @EXPORT      = qw(is_valid_against_relaxng      is_valid_against_rng
-                      is_valid_against_xmlschema    is_valid_against_xsd
-                      is_valid_against_sgmldtd      is_valid_against_dtd
-                      is_well_formed_xml            xml_parses_ok);
+our @EXPORT = qw(is_valid_against_relaxng   is_valid_against_rng    relaxng_ok
+                 is_valid_against_xmlschema is_valid_against_xsd    xmlschema_ok
+                 is_valid_against_sgmldtd   is_valid_against_dtd    sgmldtd_ok
+                 is_well_formed_xml         xml_parses_ok);
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 ###############################################################################
 #
@@ -60,12 +63,12 @@ our $VERSION = '0.11';
 #                   here.
 #
 #   Arguments:      NAME        IN/OUT  TYPE    DESCRIPTION
-#                   $validator  in      ref     An object from one of the
-#                                                 ::Dtd, ::Schema or ::RelaxNG
-#                                                 validator classes
-#                   $text       in      varies  The XML content to validate--
+#                   $document   in      varies  The XML content to validate--
 #                                                 may be a string, filehandle,
 #                                                 etc.
+#                   $schema     in      ref     An object from one of the
+#                                                 ::Dtd, ::Schema or ::RelaxNG
+#                                                 validator classes
 #                   $name       in      scalar  If passed, this is the "name"
 #                                                 for the test, the text that
 #                                                 is printed in the TAP stream
@@ -75,47 +78,47 @@ our $VERSION = '0.11';
 ###############################################################################
 sub is_valid_against
 {
-    my ($validator, $text, $name) = @_;
+    my ($document, $schema, $name) = @_;
     my $TESTBUILDER = __PACKAGE__->builder;
     my $is_valid = 0;
     my $dom;
 
     # If there was some sort of parse-level error creating the validator
-    # object, we'll have gotten undef for $validator. We could put this test
+    # object, we'll have gotten undef for $schema. We could put this test
     # in each of the three type-specific functions, but the test itself is
     # identical so it might as well just be here:
-    if (! defined($validator))
+    if (! defined($schema))
     {
         return $TESTBUILDER->ok(0, $name) || $TESTBUILDER->diag($@);
     }
 
-    # Try to get a DOM object out of $text, by hook or by crook:
+    # Try to get a DOM object out of $document, by hook or by crook:
     my $parser = XML::LibXML->new();
-    if ($TESTBUILDER->is_fh($text))
+    if ($TESTBUILDER->is_fh($document))
     {
         # Anything that looks like a file-handle gets treated as such
-        eval { $dom = $parser->parse_fh($text); };
+        eval { $dom = $parser->parse_fh($document); };
     }
-    elsif (ref($text) eq 'XML::LibXML::Document')
+    elsif (ref($document) eq 'XML::LibXML::Document')
     {
         # This one is a gimme... if they were kind-enough to pre-parse it
-        $dom = $text;
+        $dom = $document;
     }
-    elsif (ref($text) eq 'SCALAR')
+    elsif (ref($document) eq 'SCALAR')
     {
         # A scalar-ref is presumed to be the XML text passed by reference
-        eval { $dom = $parser->parse_string($$text); };
+        eval { $dom = $parser->parse_string($$document); };
     }
-    elsif ($text =~ /<\?xml|<!DOCTYPE/)
+    elsif ($document =~ /<\?xml|<!DOCTYPE/)
     {
         # If the text looks like XML (has either a declarative PI or a DOCTYPE
         # declaration), assume that it is directly-passed-in XML content
-        eval { $dom = $parser->parse_string($text); };
+        eval { $dom = $parser->parse_string($document); };
     }
     else
     {
         # Failing any of the previous tests, assume that it is a filename
-        eval { $dom = $parser->parse_file($text); };
+        eval { $dom = $parser->parse_file($document); };
     }
 
     # Skip the actual testing if whichever parser-call above ended up being
@@ -128,17 +131,27 @@ sub is_valid_against
         # and dies if the document doesn't validate. Alas, the XML::LibXML::Dtd
         # class *doesn't* follow this convention, so I have to special case
         # it.
-        if ($validator->isa('XML::LibXML::Dtd'))
+        if ($schema->isa('XML::LibXML::Dtd'))
         {
             # If we have a DTD-derived object, we use the validate() method
             # on the $dom value itself and pass the compiled DTD as an
             # argument. The other two do this the other way around...
-            eval { $dom->validate($validator); };
+            eval { $dom->validate($schema); };
         }
-        elsif ($validator->isa('XML::LibXML::RelaxNG') or
-               $validator->isa('XML::LibXML::Schema'))
+        elsif ($schema->isa('XML::LibXML::RelaxNG') or
+               $schema->isa('XML::LibXML::Schema'))
         {
-            eval { $validator->validate($dom); };
+            eval { $schema->validate($dom); };
+        }
+        else
+        {
+            # Might be over-loading the use of this function, so I can't be
+            # certain that it won't get called with something in $schema that
+            # doesn't match either of the above tests.
+            $TESTBUILDER->ok(0, $name);
+            $TESTBUILDER->
+                diag("Argument '$schema' not valid for is_valid_against()");
+            return 0;
         }
 
         # If validation failed, $@ was set with some explanation. We'll use it
@@ -165,9 +178,9 @@ sub is_valid_against
 #                   type-specific tester-routines.
 #
 #   Arguments:      NAME        IN/OUT  TYPE    DESCRIPTION
+#                   $document   in      varies  The document/text to test
 #                   $schema     in      varies  The schema (RelaxNG) to test
 #                                                 $document against
-#                   $document   in      varies  The document/text to test
 #                   $name       in      scalar  If passed, the "name" or label
 #                                                 for the test in the TAP
 #                                                 output stream
@@ -177,7 +190,7 @@ sub is_valid_against
 ###############################################################################
 sub is_valid_against_relaxng
 {
-    my ($schema, $document, $name) = @_;
+    my ($document, $schema, $name) = @_;
     my $TESTBUILDER = __PACKAGE__->builder;
     my $dom_schema;
 
@@ -225,11 +238,11 @@ sub is_valid_against_relaxng
                                'XML::LibXML::RelaxNG instance');
     }
 
-    is_valid_against($dom_schema, $document, $name);
+    is_valid_against($document, $dom_schema, $name);
 }
 
 # Semantic-sugar alias for the above:
-*is_valid_against_rng = \&is_valid_against_relaxng;
+*relaxng_ok = *is_valid_against_rng = \&is_valid_against_relaxng;
 
 ###############################################################################
 #
@@ -245,9 +258,9 @@ sub is_valid_against_relaxng
 #                   type-specific tester-routines.
 #
 #   Arguments:      NAME      IN/OUT  TYPE      DESCRIPTION
+#                   $document   in      varies  The document/text to test
 #                   $schema     in      varies  The schema (XML Schema) to test
 #                                                 $document against
-#                   $document   in      varies  The document/text to test
 #                   $name       in      scalar  If passed, the "name" or label
 #                                                 for the test in the TAP
 #                                                 output stream
@@ -257,7 +270,7 @@ sub is_valid_against_relaxng
 ###############################################################################
 sub is_valid_against_xmlschema
 {
-    my ($schema, $document, $name) = @_;
+    my ($document, $schema, $name) = @_;
     my $TESTBUILDER = __PACKAGE__->builder;
     my $dom_schema;
 
@@ -304,11 +317,11 @@ sub is_valid_against_xmlschema
                                'XML::LibXML::Schema instance');
     }
 
-    is_valid_against($dom_schema, $document, $name);
+    is_valid_against($document, $dom_schema, $name);
 }
 
 # Semantic-sugar alias for the above:
-*is_valid_against_xsd = \&is_valid_against_xmlschema;
+*xmlschema_ok = *is_valid_against_xsd = \&is_valid_against_xmlschema;
 
 ###############################################################################
 #
@@ -324,9 +337,9 @@ sub is_valid_against_xmlschema
 #                   type-specific tester-routines.
 #
 #   Arguments:      NAME      IN/OUT  TYPE      DESCRIPTION
+#                   $document   in      varies  The document/text to test
 #                   $schema     in      varies  The schema (SGML DTD) to test
 #                                                 $document against
-#                   $document   in      varies  The document/text to test
 #                   $name       in      scalar  If passed, the "name" or label
 #                                                 for the test in the TAP
 #                                                 output stream
@@ -336,7 +349,7 @@ sub is_valid_against_xmlschema
 ###############################################################################
 sub is_valid_against_sgmldtd
 {
-    my ($schema, $document, $name) = @_;
+    my ($document, $schema, $name) = @_;
     my $TESTBUILDER = __PACKAGE__->builder;
     my $dom_schema;
 
@@ -381,10 +394,10 @@ sub is_valid_against_sgmldtd
                                'XML::LibXML::Dtd instance');
     }
 
-    is_valid_against($dom_schema, $document, $name);
+    is_valid_against($document, $dom_schema, $name);
 }
 # Semantic-sugar alias for the above:
-*is_valid_against_dtd = \&is_valid_against_sgmldtd;
+*sgmldtd_ok = *is_valid_against_dtd = \&is_valid_against_sgmldtd;
 
 ###############################################################################
 #
@@ -394,10 +407,10 @@ sub is_valid_against_sgmldtd
 #                   errors. Makes no effort to validate, only parse.
 #
 #   Arguments:      NAME        IN/OUT  TYPE    DESCRIPTION
-#
-#   Globals:        None.
-#
-#   Environment:    None.
+#                   $document   in      varies  The document/text to test
+#                   $name       in      scalar  If passed, the "name" or label
+#                                                 for the test in the TAP
+#                                                 output stream
 #
 #   Returns:        Success:    1
 #                   Failure:    0
@@ -405,33 +418,33 @@ sub is_valid_against_sgmldtd
 ###############################################################################
 sub is_well_formed_xml
 {
-    my ($text, $name) = @_;
+    my ($document, $name) = @_;
     my $TESTBUILDER = __PACKAGE__->builder;
     my $is_valid = 0;
     my $dom;
 
-    # Try to parse $text, by hook or by crook:
+    # Try to parse $document, by hook or by crook:
     my $parser = XML::LibXML->new();
-    if ($TESTBUILDER->is_fh($text))
+    if ($TESTBUILDER->is_fh($document))
     {
         # Anything that looks like a file-handle gets treated as such
-        eval { $dom = $parser->parse_fh($text); };
+        eval { $dom = $parser->parse_fh($document); };
     }
-    elsif (ref($text) eq 'SCALAR')
+    elsif (ref($document) eq 'SCALAR')
     {
         # A scalar-ref is presumed to be the XML text passed by reference
-        eval { $dom = $parser->parse_string($$text); };
+        eval { $dom = $parser->parse_string($$document); };
     }
-    elsif ($text =~ /<\?xml|<!DOCTYPE/)
+    elsif ($document =~ /<\?xml|<!DOCTYPE/)
     {
         # If the text looks like XML (has either a declarative PI or a DOCTYPE
         # declaration), assume that it is directly-passed-in XML content
-        eval { $dom = $parser->parse_string($text); };
+        eval { $dom = $parser->parse_string($document); };
     }
     else
     {
         # Failing any of the previous tests, assume that it is a filename
-        eval { $dom = $parser->parse_file($text); };
+        eval { $dom = $parser->parse_file($document); };
     }
 
     $TESTBUILDER->ok(($@) ? 0 : 1, $name) || $TESTBUILDER->diag($@);
@@ -502,6 +515,51 @@ parameters, with the same relevance. These are:
 
 =over 4
 
+=item $document
+
+This argument represents the document being tested against the schema provided
+in the first argument. There are several ways in which to pass this:
+
+=over 8
+
+=item pre-parsed XML document
+
+If the user has pre-parsed the document, the resulting XML::LibXML::Document
+object can be passed in as the parameter. This can be useful if the test suite
+wishes to distinguish document well-formedness (the document is parseable
+without errors) versus document validity (whether the parsed document conforms
+to a given schema).
+
+=item open filehandle
+
+If the parameter passed in appears to be an open filehandle, it is passed to
+the B<parse_fh()> method  of XML::LibXML in order to obtain a document object.
+
+=item scalar reference
+
+If the parameter is a scalar reference, it is assumed to be a reference to the
+document in memory. The de-referenced scalar is passed to the C<parse_string>
+method of a XML::LibXML object, to result in a document object.
+
+=item string (scalar)
+
+Lastly, if the value is a (non-reference) scalar, it is first examined to see
+if it looks like an XML document. Regular expressions are used to see if the
+content looks like XML. It will look for a C<DOCTYPE> declaration or an XML
+document declaration (the initial C<< <?xml ...?> >> line that most XML
+documents have), first. If neither of these are found, at least one XML tag
+must be found. If not even this is found, the string is presumed to be a
+filename and is passed to the C<parse_file> method of XML::LibXML. If the
+string looks like XML content after all, it is passed to the C<parse_string>
+method of that class.
+
+=back
+
+Any of the forms that have to directly handle the reading of a file and/or
+parsing a document itself, are wrapped in C<eval> blocks to catch any fatal
+errors. If such occur, the test reports a failure and the error is given as
+diagnostic information for the test.
+
 =item $schema
 
 For all of the test routines, the first argument represents the schema being
@@ -554,52 +612,6 @@ somewhat limited, and may not always be guaranteed to work. Generally, it is
 best to only use the straight string parameter for filenames. If you have the
 schema in string-form, consider passing it as a scalar reference.
 
-=item $document
-
-This argument represents the document being tested against the schema provided
-in the first argument. As with the schema, you have a choice of ways in which
-to pass this:
-
-=over 8
-
-=item pre-parsed XML document
-
-If the user has pre-parsed the document, the resulting XML::LibXML::Document
-object can be passed in as this parameter. This can be useful if the test suite
-wishes to distinguish document well-formedness (the document is parseable
-without errors) versus document validity (whether the parsed document conforms
-to a given schema).
-
-=item open filehandle
-
-Unlike the schema-related classes, the XML::LibXML objects have a method
-to parse directly from a filehandle. If the parameter passed in appears to be
-an open filehandle, it is passed to this method in order to obtain a
-document object.
-
-=item scalar reference
-
-If the parameter is a scalar reference, it is assumed to be a reference to the
-document in memory. The de-referenced scalar is passed to the C<parse_string>
-method of a XML::LibXML object, to result in a document object.
-
-=item string (scalar)
-
-Lastly, if the value is a (non-reference) scalar, it is first examined to see
-if it looks like an XML document. Regular expressions are used to see if either
-a C<DOCTYPE> declaration or an XML document declaration (the initial
-C<< <?xml ...?> >> line that most XML documents have) is present. If neither of
-these are found, the string is presumed to be a file-name and is passed to
-the C<parse_file> method of XML::LibXML. If the string looks like XML
-content after all, it is passed to the C<parse_string> method of that class.
-
-=back
-
-Also as with the schema argument, any of the forms that have to directly
-handle reading a file and/or parsing the document itself, are wrapped in
-C<eval> blocks to catch any fatal errors. If such occur, the test reports a
-failure and the error is given as diagnostic information for the test.
-
 =item $name
 
 This argument is the only optional parameter of the three. If passed, it
@@ -607,40 +619,49 @@ should be a string identifying the test. It is displayed in the TAP output
 stream, just as the C<name> parameter to more-familiar test functions (B<ok()>,
 B<like()>, etc.) is used.
 
+If C<$name> is not given, Test::Formats::XML will attempt to create a
+reasonable test-name based on the type of the C<$document> and
+C<$schema> parameters.
+
 =back
 
 =head2 Tests
 
-The following test functions are provided:
+The following test functions are provided. Each has one or more aliases to
+allow the user to choose syntaxtic sugar that best fit their preferred
+linguistic view of test-names:
 
 =over 4
 
-=item is_valid_against_relaxng($schema, $document, $name)
+=item is_valid_against_relaxng($document, $schema, $name)
 
-=item is_valid_against_rng($schema, $document, $name)
+=item is_valid_against_rng($document, $schema, $name)
 
-The first pair test a document against a RelaxNG schema. For more on the
-RelaxNG syntax, see L<http://relaxng.org/>. The second name is provided as a
-shorter alias for the full name.
+=item relaxng_ok($document, $schema, $name)
 
-=item is_valid_against_sgmldtd($schema, $document, $name)
+The first set test a document against a RelaxNG schema. For more on the
+RelaxNG syntax, see L<http://relaxng.org/>.
 
-=item is_valid_against_dtd($schema, $document, $name)
+=item is_valid_against_sgmldtd($document, $schema, $name)
 
-This pair test a document against a DTD. The name is slightly misleading, as
+=item is_valid_against_dtd($document, $schema, $name)
+
+=item sgmldtd_ok($document, $schema, $name)
+
+This set test a document against a DTD. The names are slightly misleading, as
 both SGML and XML DTDs are supported by XML::LibXML::Dtd. There are some
 minor syntactical differences between SGML DTDs and XML DTDs, but you can use
-whichever is best for your needs. The second name is a shorter alias provided
-for convenience.
+whichever is best for your needs.
 
-=item is_valid_against_xmlschema($schema, $document, $name)
+=item is_valid_against_xmlschema($document, $schema, $name)
 
-=item is_valid_against_xsd($schema, $document, $name)
+=item is_valid_against_xsd($document, $schema, $name)
 
-This pair validate documents against XML Schemas. See
+=item xmlschema_ok($document, $schema, $name)
+
+This set validate documents against XML Schemas. See
 L<http://www.w3.org/TR/xmlschema-0/> and L<http://www.w3.org/TR/xmlschema-1/>
-for more about using XML Schema to define document structure. The second name
-is provided as a shorter alias.
+for more about using XML Schema to define document structure.
 
 =item is_well_formed_xml($document, $name)
 
@@ -656,9 +677,6 @@ These tests are convenience, as the same basic functionality can be found in
 other test-related modules on CPAN. However, as long as XML::LibXML is already
 being used, there is no harm in making things easier for the user by providing
 them here and cutting down on the list of dependencies.
-
-The second name is provided as a shorter alias, and for aesthetic purposes for
-those who prefer tests that follow the C<*ok()> naming pattern.
 
 =back
 

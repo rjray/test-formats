@@ -1,11 +1,12 @@
 ###############################################################################
 #
-#   $Id: Build.PL 5 2008-10-21 11:05:53Z rjray $
+#   $Id: Build.PL 10 2008-10-22 09:57:04Z rjray $
 #
 #   Module::Build file for Test::Formats
 #
 ###############################################################################
 
+use 5.008;
 use strict;
 use warnings;
 use Module::Build;
@@ -14,7 +15,7 @@ my $builder = Module::Build->new(
     module_name          => 'Test::Formats',
     license              => 'perl',
     dist_author          => 'Randy J. Ray <rjray@blackperl.com>',
-    dist_version         => '0.11',
+    dist_version         => '0.12',
     build_requires       => {
         'Test::More' => '0.80',
     },

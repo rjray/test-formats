@@ -1,10 +1,8 @@
 <?xml version="1.0"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:tns="http://www.blackperl.com/XML/ChangeLog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     targetNamespace="http://www.blackperl.com/XML/ChangeLog"
     elementFormDefault="qualified" attributeFormDefault="unqualified"
-    xsi:schemaLocation="http://www.w3.org/2001/XMLSchema XMLSchema.xsd"
     version="0.95" id="changelog0.95">
   <!--
       Refer to this schema using the following namespace:
@@ -165,9 +163,9 @@
                            type="tns:informationType" nillable="true" />
               <xsd:element maxOccurs="unbounded" minOccurs="1" ref="tns:file" />
             </xsd:sequence>
+            <xsd:attribute name="revision" type="tns:versionString"
+                           use="optional"/>
           </xsd:complexType>
-          <xsd:attribute name="revision" type="tns:versionString"
-                         use="optional"/>
         </xsd:element>
       </xsd:choice>
       <xsd:element name="description" type="tns:descriptionType"

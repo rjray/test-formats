@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 10_with_xml.t 2 2008-10-20 09:56:47Z rjray $
+# $Id: 10_with_xml.t 8 2008-10-22 07:16:55Z rjray $
 
 # Test the usage of the XML tests as loaded via Test::Formats
 
@@ -88,7 +88,7 @@ END_XML
 for my $test (sort keys %tests)
 {
     test_out("ok 1 - $test");
-    $tests{$test}->[0]->($schemas{$tests{$test}->[1]}, $xmlcontent, $test);
+    $tests{$test}->[0]->($xmlcontent, $schemas{$tests{$test}->[1]}, $test);
     test_test("import of $test");
 }
 

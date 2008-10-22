@@ -5,18 +5,43 @@
 
     http://www.blackperl.com/XML/ChangeLog/ChangeLogML.xsd
 
-    $Id: ChangeLog.xml 6 2008-10-21 11:12:27Z rjray $
+    $Id: ChangeLog.xml 10 2008-10-22 09:57:04Z rjray $
 -->
 <changelog xmlns="http://www.blackperl.com/XML/ChangeLog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
-    xsi:schemaLocation="http://www.blackperl.com/XML/ChangeLog etc/ChangeLogML.x
-sd">
+    xsi:schemaLocation="http://www.blackperl.com/XML/ChangeLog etc/ChangeLogML.xsd">
   <description>
     Revision history for the Perl extension module Test::Formats. This is
     a test-harness implementation that provides users with easy methods for
     testing text data that adheres to regular, validatable formats.
   </description>
+  <release version="0.12" tag="v0_12" date="2008-10-22T03:00:00-07:00">
+    <change>
+      <fileset revision="8">
+        <file path="lib/Test/Formats/XML.pm" />
+        <file path="t/10_xml/10_sgmldtd.t" />
+        <file path="t/10_xml/20_xmlschema.t" />
+        <file path="t/10_xml/30_relaxng.t" />
+        <file path="t/90_integration/10_with_xml.t" />
+        <file path="t/90_integration/90_empty_subclass.t" />
+      </fileset>
+      <description>
+        Per suggestions from Schwern, added &lt;type&gt;_ok aliases for the
+        tests, and also swapped the order of the $document and $schema
+        arguments to all the tests. While at it, added tests for each of the
+        three schema-types to test the aliases directly.
+      </description>
+    </change>
+    <change>
+      <file path="lib/Test/Formats/XML.pm" revision="9" />
+      <description>
+        Follow-up the previous with carrying over the argument-ordering change
+        to the is_valid_against() subroutine. Also fleshed out some overlooked
+        (i.e., forgotten) documentation for is_well_formed_xml().
+      </description>
+    </change>
+  </release>
   <release version="0.11" tag="v0_11" date="2008-10-21T04:07:00-07:00">
     <change>
       <fileset revision="4">
