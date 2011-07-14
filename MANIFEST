@@ -19,4 +19,3 @@ xt/00_load.t
 xt/01_pod.t
 xt/02_pod_coverage.t
 META.yml                                 Module meta-data (added by MakeMaker)
-SIGNATURE                                Public-key signature (added by MakeMaker)
